@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAM - Guía Completa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            line-height: 1.6;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 80px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .card {
+            background: #1a1f3a;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(42, 82, 152, 0.4);
+        }
+        
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .card h3 {
+            color: #4a9eff;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .full-width {
+            background: #1a1f3a;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .full-width h2 {
+            color: #4a9eff;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4a9eff;
+        }
+        
+        .code-block {
+            background: #0d1117;
+            border-radius: 10px;
+            padding: 25px;
+            overflow-x: auto;
+            margin: 25px 0;
+            border: 1px solid #30363d;
+        }
+        
+        pre {
+            color: #c9d1d9;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            margin: 0;
+        }
+        
+        .step-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        
+        .step-list li {
+            counter-increment: step-counter;
+            margin: 20px 0;
+            padding-left: 50px;
+            position: relative;
+        }
+        
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #4a9eff 0%, #2a5298 100%);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4a9eff 0%, #2a5298 100%);
+            color: white;
+            padding: 15px 35px;
+            text-decoration: none;
+            border-radius: 50px;
+            margin: 10px 10px 10px 0;
+            transition: transform 0.3s, box-shadow 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(74, 158, 255, 0.3);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 158, 255, 0.5);
+        }
+        
+        .img-container {
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .img-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            border: 2px solid #30363d;
+        }
+        
+        .img-caption {
+            margin-top: 15px;
+            color: #8b949e;
+            font-style: italic;
+        }
+        
+        .connections-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .connections-table th,
+        .connections-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .connections-table th {
+            background: #0d1117;
+            color: #4a9eff;
+            font-weight: bold;
+        }
+        
+        .connections-table tr:hover {
+            background: rgba(74, 158, 255, 0.1);
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #ff4757;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #4a9eff 0%, #2a5298 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #1e88e5;
+        }
+        
+        ul {
+            margin-left: 20px;
+        }
+        
+        li {
+            margin: 10px 0;
+        }
+        
+        code {
+            background: #0d1117;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: #4a9eff;
+            font-family: 'Courier New', monospace;
+        }
+        
+        a {
+            color: #4a9eff;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-content">
+            <h1>ESP32-CAM</h1>
+            <p>Guía completa para la practica</p>
+        </div>
+    </div>
+        
+        <div class="full-width">
+            <h2>Descargas Necesarias</h2>
+            <p style="margin-bottom: 20px;">Descarga e instala estos componentes antes de comenzar:</p>
+            
+            <a href="https://www.arduino.cc/en/software" target="_blank" class="download-btn">⬇️ Arduino IDE</a>
+            <a href="https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers" target="_blank" class="download-btn">⬇️ Driver CP210x</a>
+            <a href="https://sparks.gogo.co.nz/ch340.html" target="_blank" class="download-btn">⬇️ Driver CH340</a>
+            
+            <div class="info-box" style="margin-top: 30px;">
+                <h3 style="margin-bottom: 15px;">Instalación de soporte ESP32:</h3>
+                <ol class="step-list">
+                    <li>Abre Arduino IDE</li>
+                    <li>Ve a: <strong>Archivo → Preferencias</strong></li>
+                    <li>En "URLs Adicionales de Gestor de Tarjetas" pega:<br>
+                        <code style="display: block; margin: 10px 0; padding: 10px;">https://espressif.github.io/arduino-esp32/package_esp32_index.json</code>
+                    </li>
+                    <li>Ve a: <strong>Herramientas → Placa → Gestor de tarjetas</strong></li>
+                    <li>Busca "ESP32" y selecciona el paquete de <strong>Espressif Systems</strong></li>
+                    <li>Click en <strong>Instalar</strong></li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="full-width">
+            <h2>Configuración Arduino IDE</h2>
+            <ol class="step-list">
+                <li>Selecciona la placa:<br>
+                    <strong>Herramientas → Placa → ESP32 Arduino → AI Thinker ESP32-CAM</strong>
+                </li>
+                <li>Configura partición:<br>
+                    <strong>Partition Scheme → Huge APP (3MB No OTA/1MB SPIFFS)</strong>
+                </li>
+                <li>Frecuencia de flash:<br>
+                    <strong>Flash Frequency → 80MHz</strong>
+                </li>
+                <li>Velocidad de carga:<br>
+                    <strong>Upload Speed → 115200</strong>
+                </li>
+                <li>Selecciona puerto COM:<br>
+                    <strong>Herramientas → Puerto → [tu puerto COM]</strong>
+                </li>
+            </ol>
+        </div>
+
+        <div class="full-width">
+            <h2>Conexiones y Diagramas</h2>
+            
+            <div class="img-container">
+                <img src="https://i0.wp.com/randomnerdtutorials.com/wp-content/uploads/2020/03/ESP32-CAM-pinout-new.png" alt="Pinout ESP32-CAM">
+                <p class="img-caption">Pinout completo ESP32-CAM AI-Thinker</p>
+            </div>
+            
+            <h3 style="color: #4a9eff; margin: 30px 0 20px;">Tabla de Conexiones:</h3>
+            <table class="connections-table">
+                <thead>
+                    <tr>
+                        <th>ESP32-CAM</th>
+                        <th>Conexiones</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>GND</strong></td>
+                        <td>GND</td>
+                        <td>Tierra común</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3.3V</strong></td>
+                        <td>VCC (3.3V)</td>
+                        <td>Alimentación</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPIO 14</strong></td>
+                        <td>SCL</td>
+                        <td>Para SCL de pantalla OLED</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPIO 15</strong></td>
+                        <td>SDA</td>
+                        <td>Para SDA de pantalla OLED</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPIO 02</strong></td>
+                        <td>LED OBJETO 01</td>
+                        <td>Enciende con objeto 01</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPIO 12</strong></td>
+                        <td>LED SIN OBJETO</td>
+                        <td>Enciende sin objeto</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPIO 16</strong></td>
+                        <td>LED OBJETO 02</td>
+                        <td>Enciende objeto 02</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPIO 13</strong></td>
+                        <td>BUZZER</td>
+                        <td>Enciende si detecta objeto</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="img-container">
+                <img src="IMG/Imagen de WhatsApp 2025-11-18 a las 22.37.22_d640c707.jpg" alt="Conexión FTDI">
+                <p class="img-caption">Conexiones</p>
+            </div>
+            
+            <div class="img-container">
+                <img src="IMG/Imagen de WhatsApp 2025-11-18 a las 22.37.23_49fc7044.jpg" alt="ESP32-CAM">
+                <p class="img-caption">Conexiones</p>
+            </div>
+        </div>
+
+        <div class="full-width">
+            <h2>Código Completo</h2>
+            <div class="code-block">
+                <pre>
+#include <Componentes_Detect_1_inferencing.h> // modify with your project title, Replace the xxxx
+#include "edge-impulse-sdk/dsp/image/image.hpp"
+
+#include "esp_camera.h"
+
+// Select camera model
+// #define CAMERA_MODEL_ESP_EYE  // Has PSRAM
+#define CAMERA_MODEL_AI_THINKER // Has PSRAM
+
+#if defined(CAMERA_MODEL_ESP_EYE)
+#define PWDN_GPIO_NUM -1
+#define RESET_GPIO_NUM -1
+#define XCLK_GPIO_NUM 4
+#define SIOD_GPIO_NUM 18
+#define SIOC_GPIO_NUM 23
+
+#define Y9_GPIO_NUM 36
+#define Y8_GPIO_NUM 37
+#define Y7_GPIO_NUM 38
+#define Y6_GPIO_NUM 39
+#define Y5_GPIO_NUM 35
+#define Y4_GPIO_NUM 14
+#define Y3_GPIO_NUM 13
+#define Y2_GPIO_NUM 34
+#define VSYNC_GPIO_NUM 5
+#define HREF_GPIO_NUM 27
+#define PCLK_GPIO_NUM 25
+
+#elif defined(CAMERA_MODEL_AI_THINKER)
+#define PWDN_GPIO_NUM 32
+#define RESET_GPIO_NUM -1
+#define XCLK_GPIO_NUM 0
+#define SIOD_GPIO_NUM 26
+#define SIOC_GPIO_NUM 27
+
+#define Y9_GPIO_NUM 35
+#define Y8_GPIO_NUM 34
+#define Y7_GPIO_NUM 39
+#define Y6_GPIO_NUM 36
+#define Y5_GPIO_NUM 21
+#define Y4_GPIO_NUM 19
+#define Y3_GPIO_NUM 18
+#define Y2_GPIO_NUM 5
+#define VSYNC_GPIO_NUM 25
+#define HREF_GPIO_NUM 23
+#define PCLK_GPIO_NUM 22
+
+#else
+#error "Camera model not selected"
+#endif
+
+/* Constant defines -------------------------------------------------------- */
+#define EI_CAMERA_RAW_FRAME_BUFFER_COLS 320
+#define EI_CAMERA_RAW_FRAME_BUFFER_ROWS 240
+#define EI_CAMERA_FRAME_BYTE_SIZE 3
+
+
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// ESP32-CAM I2C pins
+#define I2C_SDA 15
+#define I2C_SCL 14
+TwoWire I2Cbus = TwoWire(0);
+
+// Display defines
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+#define SCREEN_ADDRESS 0x3C
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2Cbus, OLED_RESET);
+
+
+// *** INICIO DE MODIFICACIONES ***
+// DEFINE LOS PINES PARA LOS LEDS Y EL BUZZER
+// Puedes cambiar estos pines si están ocupados
+#define LED1_PIN 2       // Pin para el LED del Objeto 1 (lego)
+#define LED2_PIN 16      // Pin para el LED del Objeto 2 (pila 9v) // <-- ¡CAMBIO HECHO AQUI!
+#define LED_NADA_PIN 12  // Pin para el LED cuando no detecta nada
+#define BUZZER_PIN 13    // Pin para el buzzer
+
+// !!! IMPORTANTE: NOMBRES DE OBJETOS ACTUALIZADOS !!!
+const char* OBJETO1_LABEL = "lego";    // <-- AQUI ESTA EL CAMBIO
+const char* OBJETO2_LABEL = "pila 9v"; // <-- AQUI ESTA EL CAMBIO
+// *** FIN DE MODIFICACIONES ***
+
+
+/* Private variables ------------------------------------------------------- */
+static bool debug_nn = false;
+static bool is_initialised = false;
+uint8_t *snapshot_buf;  //points to the output of the capture
+
+static camera_config_t camera_config = {
+  .pin_pwdn = PWDN_GPIO_NUM,
+  .pin_reset = RESET_GPIO_NUM,
+  .pin_xclk = XCLK_GPIO_NUM,
+  .pin_sscb_sda = SIOD_GPIO_NUM,
+  .pin_sscb_scl = SIOC_GPIO_NUM,
+
+  .pin_d7 = Y9_GPIO_NUM,
+  .pin_d6 = Y8_GPIO_NUM,
+  .pin_d5 = Y7_GPIO_NUM,
+  .pin_d4 = Y6_GPIO_NUM,
+  .pin_d3 = Y5_GPIO_NUM,
+  .pin_d2 = Y4_GPIO_NUM,
+  .pin_d1 = Y3_GPIO_NUM,
+  .pin_d0 = Y2_GPIO_NUM,
+  .pin_vsync = VSYNC_GPIO_NUM,
+  .pin_href = HREF_GPIO_NUM,
+  .pin_pclk = PCLK_GPIO_NUM,
+
+  .xclk_freq_hz = 20000000,
+  .ledc_timer = LEDC_TIMER_0,
+  .ledc_channel = LEDC_CHANNEL_0,
+
+  .pixel_format = PIXFORMAT_JPEG,
+  .frame_size = FRAMESIZE_QVGA,
+
+  .jpeg_quality = 12,
+  .fb_count = 1,
+  .fb_location = CAMERA_FB_IN_PSRAM,
+  .grab_mode = CAMERA_GRAB_WHEN_EMPTY,
+};
+
+/* Function definitions ------------------------------------------------------- */
+bool ei_camera_init(void);
+void ei_camera_deinit(void);
+bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf);
+
+/**
+* @brief    Arduino setup function
+*/
+void setup() {
+  Serial.begin(115200);
+
+  I2Cbus.begin(I2C_SDA, I2C_SCL, 100000);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.printf("SSD1306 OLED display failed to initalize.\nCheck that display SDA is connected to pin %d and SCL connected to pin %d\n", I2C_SDA, I2C_SCL);
+    while (true)
+      ;
+  }
+
+  // *** INICIO DE MODIFICACIONES ***
+  // INICIALIZAR PINES DE LEDS Y BUZZER COMO SALIDA
+  pinMode(LED1_PIN, OUTPUT);
+  pinMode(LED2_PIN, OUTPUT);
+  pinMode(LED_NADA_PIN, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  // Asegurarse que todos estén apagados al iniciar, excepto el de "nada"
+  digitalWrite(LED1_PIN, LOW);
+  digitalWrite(LED2_PIN, LOW);
+  digitalWrite(LED_NADA_PIN, HIGH); // Encender el LED de "nada" al inicio
+  digitalWrite(BUZZER_PIN, LOW);
+  // *** FIN DE MODIFICACIONES ***
+
+
+  while (!Serial)
+    ;
+  Serial.println("Edge Impulse Inferencing Demo");
+  if (ei_camera_init() == false) {
+    ei_printf("Failed to initialize Camera!\r\n");
+  } else {
+    ei_printf("Camera initialized\r\n");
+  }
+
+  ei_printf("\nStarting continious inference in 2 seconds...\n");
+   display.clearDisplay();
+  display.setCursor(0, 0);
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.print("Starting continious\n inference in\n 2 seconds...");
+  display.display();
+  ei_sleep(2000);
+    display.clearDisplay();
+}
+
+/**
+* @brief      Get data and run inferencing
+*/
+void loop() {
+  display.clearDisplay();
+  if (ei_sleep(5) != EI_IMPULSE_OK) {
+    return;
+  }
+
+  snapshot_buf = (uint8_t *)malloc(EI_CAMERA_RAW_FRAME_BUFFER_COLS * EI_CAMERA_RAW_FRAME_BUFFER_ROWS * EI_CAMERA_FRAME_BYTE_SIZE);
+
+  if (snapshot_buf == nullptr) {
+    ei_printf("ERR: Failed to allocate snapshot buffer!\n");
+    return;
+  }
+
+  ei::signal_t signal;
+  signal.total_length = EI_CLASSIFIER_INPUT_WIDTH * EI_CLASSIFIER_INPUT_HEIGHT;
+  signal.get_data = &ei_camera_get_data;
+
+  if (ei_camera_capture((size_t)EI_CLASSIFIER_INPUT_WIDTH, (size_t)EI_CLASSIFIER_INPUT_HEIGHT, snapshot_buf) == false) {
+    ei_printf("Failed to capture image\r\n");
+    free(snapshot_buf);
+    return;
+  }
+
+  // Run the classifier
+  ei_impulse_result_t result = { 0 };
+
+  EI_IMPULSE_ERROR err = run_classifier(&signal, &result, debug_nn);
+  if (err != EI_IMPULSE_OK) {
+    ei_printf("ERR: Failed to run classifier (%d)\n", err);
+    return;
+  }
+
+  ei_printf("Predictions (DSP: %d ms., Classification: %d ms., Anomaly: %d ms.): \n",
+            result.timing.dsp, result.timing.classification, result.timing.anomaly);
+
+#if EI_CLASSIFIER_OBJECT_DETECTION == 1
+  
+  // *** INICIO DE MODIFICACIONES ***
+  // 1. Apagar todos los actuadores al inicio de cada ciclo
+  digitalWrite(LED1_PIN, LOW);
+  digitalWrite(LED2_PIN, LOW);
+  digitalWrite(LED_NADA_PIN, LOW);
+  digitalWrite(BUZZER_PIN, LOW);
+  // *** FIN DE MODIFICACIONES ***
+
+  bool bb_found = result.bounding_boxes[0].value > 0;
+  for (size_t ix = 0; ix < result.bounding_boxes_count; ix++) {
+    auto bb = result.bounding_boxes[ix];
+    if (bb.value == 0) {
+      continue;
+    }
+    ei_printf("    %s (%f) [ x: %u, y: %u, width: %u, height: %u ]\n", bb.label, bb.value, bb.x, bb.y, bb.width, bb.height);
+    display.setCursor(0, 20 * ix);
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.print(bb.label);
+    display.print("-");
+    display.print(int((bb.value)*100));
+    display.print("%");
+    display.display();
+
+    // *** INICIO DE MODIFICACIONES ***
+    // 2. Comprobar la etiqueta (label) y encender el LED correspondiente
+    if (strcmp(bb.label, OBJETO1_LABEL) == 0) {
+      digitalWrite(LED1_PIN, HIGH); // Encender LED 1 (lego)
+    }
+    else if (strcmp(bb.label, OBJETO2_LABEL) == 0) {
+      digitalWrite(LED2_PIN, HIGH); // Encender LED 2 (pila 9v)
+    }
+    // *** FIN DE MODIFICACIONES ***
+  }
+
+  // *** INICIO DE MODIFICACIONES ***
+  // 3. Controlar el buzzer y el LED de "nada" basado en si se encontró ALGO
+  if (bb_found) {
+    digitalWrite(BUZZER_PIN, HIGH);   // Encender buzzer si se detectó CUALQUIER objeto
+  }
+  else {
+    digitalWrite(LED_NADA_PIN, HIGH); // Encender LED de "nada"
+    
+    ei_printf("    Nada detectado\n");
+    display.setCursor(0, 20);
+    display.setTextSize(2);
+    display.setTextColor(SSD1306_WHITE);
+    display.print("No detecto");
+    display.display();
+  }
+  // *** FIN DE MODIFICACIONES ***
+  
+#else
+  for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
+    ei_printf("    %s: %.5f\n", result.classification[ix].label,
+              result.classification[ix].value);
+  }
+#endif
+
+#if EI_CLASSIFIER_HAS_ANOMALY == 1
+  ei_printf("    anomaly score: %.3f\n", result.anomaly);
+#endif
+
+
+  free(snapshot_buf);
+}
+
+/**
+ * @brief   Setup image sensor & start streaming
+ */
+bool ei_camera_init(void) {
+
+  if (is_initialised) return true;
+
+#if defined(CAMERA_MODEL_ESP_EYE)
+  pinMode(13, INPUT_PULLUP);
+  pinMode(14, INPUT_PULLUP);
+#endif
+
+  esp_err_t err = esp_camera_init(&camera_config);
+  if (err != ESP_OK) {
+    Serial.printf("Camera init failed with error 0x%x\n", err);
+    return false;
+  }
+
+  sensor_t *s = esp_camera_sensor_get();
+  if (s->id.PID == OV3660_PID) {
+    s->set_vflip(s, 1);
+    s->set_brightness(s, 1);
+    s->set_saturation(s, 0);
+  }
+
+#if defined(CAMERA_MODEL_M5STACK_WIDE)
+  s->set_vflip(s, 1);
+  s->set_hmirror(s, 1);
+#elif defined(CAMERA_MODEL_ESP_EYE)
+  s->set_vflip(s, 1);
+  s->set_hmirror(s, 1);
+  s->set_awb_gain(s, 1);
+#endif
+
+  is_initialised = true;
+  return true;
+}
+
+/**
+ * @brief       Stop streaming of sensor data
+ */
+void ei_camera_deinit(void) {
+  esp_err_t err = esp_camera_deinit();
+
+  if (err != ESP_OK) {
+    ei_printf("Camera deinit failed\n");
+    return;
+  }
+
+  is_initialised = false;
+  return;
+}
+
+
+/**
+ * @brief       Capture, rescale and crop image
+ */
+bool ei_camera_capture(uint32_t img_width, uint32_t img_height, uint8_t *out_buf) {
+  bool do_resize = false;
+
+  if (!is_initialised) {
+    ei_printf("ERR: Camera is not initialized\r\n");
+    return false;
+  }
+
+  camera_fb_t *fb = esp_camera_fb_get();
+
+  if (!fb) {
+    ei_printf("Camera capture failed\n");
+    return false;
+  }
+
+  bool converted = fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, snapshot_buf);
+
+  esp_camera_fb_return(fb);
+
+  if (!converted) {
+    ei_printf("Conversion failed\n");
+    return false;
+  }
+
+  if ((img_width != EI_CAMERA_RAW_FRAME_BUFFER_COLS)
+      || (img_height != EI_CAMERA_RAW_FRAME_BUFFER_ROWS)) {
+    do_resize = true;
+  }
+
+  if (do_resize) {
+    ei::image::processing::crop_and_interpolate_rgb888(
+      out_buf,
+      EI_CAMERA_RAW_FRAME_BUFFER_COLS,
+      EI_CAMERA_RAW_FRAME_BUFFER_ROWS,
+      out_buf,
+      img_width,
+      img_height);
+  }
+
+  return true;
+}
+
+static int ei_camera_get_data(size_t offset, size_t length, float *out_ptr) {
+  size_t pixel_ix = offset * 3;
+  size_t pixels_left = length;
+  size_t out_ptr_ix = 0;
+
+  while (pixels_left != 0) {
+</pre>
+            </div>
+        </div>
+        
+        <div class="full-width">
+            <h2>Proceso de Flasheo</h2>
+            
+            <ol class="step-list">
+                <li>Conecta todos los cables según la tabla de conexiones</li>
+                <li>En Arduino IDE, abre un nuevo <strong>Sketch</strong> y pega el codigo</li>
+                <li>Click en <strong>Subir (→)</strong></li>
+                <li>Espera el mensaje: <code>"Hard resetting via RTS pin..."</code></li>
+                <li>Presiona el botón <strong>RESET</strong> en la ESP32-CAM</li>
+                <li>Abre el Monitor Serie (115200 baud)</li>
+                <li>Verás como se detectan los objetos</li>
+            </ol>
+        </div>
+        
+        <div class="full-width">
+            <h2>Solución de Problemas</h2>
+            
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>Error al subir código</h3>
+                <ul>
+                    <li>GPIO 0 debe ser precionado al presionar RESET</li>
+                    <li>Prueba reducir velocidad de carga a 57600</li>
+                    <li>Instala los drivers USB correctos</li>
+                    <li>Asegurarse que el <strong>COM</strong> seleccionado sea correcto</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
